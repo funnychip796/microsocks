@@ -19,8 +19,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y musl-tools
         # Install musl-based AArch64 cross-compiler
-        wget https://joeyparrish.github.io/musl-cc-mirror/aarch64-linux-musl-cross.tgz
-        tar -xzf aarch64-linux-musl-cross.tgz
+        wget https://pan.tenire.com/down.php/a6bb806af217a91cf575e15163e8b12b.tgz
+        tar -xzf a6bb806af217a91cf575e15163e8b12b.tgz
         sudo mv aarch64-linux-musl-cross /opt/aarch64-linux-musl-cross
         echo "/opt/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
 
