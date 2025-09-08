@@ -14,21 +14,26 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install musl-gcc and aarch64 toolchain
+    - name: Install musl-based AArch64 toolchain
       run: |
         sudo apt-get update
-        sudo apt-get install -y musl-tools gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+        sudo apt-get install -y musl-tools
+        # Install musl-based AArch64 cross-compiler
+        wget https://musl.cc/aarch64-linux-musl-cross.tgz
+        tar -xzf aarch64-linux-musl-cross.tgz
+        sudo mv aarch64-linux-musl-cross /opt/aarch64-linux-musl-cross
+        echo "/opt/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
 
     - name: Clone microsocks
       run: |
         git clone https://github.com/rofl0r/microsocks.git
         cd microsocks
 
-    - name: Build static binary for aarch64
+    - name: Build static binary for aarch64 with musl
       run: |
         cd microsocks
-        make CC=aarch64-linux-gnu-gcc LDFLAGS="-static" CFLAGS="-O2"
-        file microsocks  # 验证二进制格式
+        make CC=aarch64-linux-musl-gcc LDFLAGS="-static -s" CFLAGS="-O2"
+        file microsocks  # Verify binary format
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
