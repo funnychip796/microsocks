@@ -1,0 +1,37 @@
+name: Build microsocks for aarch64
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install musl-gcc and aarch64 toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y musl-tools gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+    - name: Clone microsocks
+      run: |
+        git clone https://github.com/rofl0r/microsocks.git
+        cd microsocks
+
+    - name: Build static binary for aarch64
+      run: |
+        cd microsocks
+        make CC=aarch64-linux-gnu-gcc LDFLAGS="-static" CFLAGS="-O2"
+        file microsocks  # 验证二进制格式
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: microsocks-aarch64
+        path: microsocks/microsocks
