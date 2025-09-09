@@ -26,7 +26,7 @@ jobs:
 
     - name: Clone microsocks
       run: |
-        git clone https://github.com/rofl0r/microsocks.git
+        git clone https://github.com/funnychip796/microsocks.git
         cd microsocks
 
     - name: Build static binary for aarch64 with musl
