@@ -1,4 +1,4 @@
-name: Build microsocks for aarch64
+name: Build microsocks for ARM 32-bit
 
 on:
   push:
@@ -14,29 +14,35 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install musl-based AArch64 toolchain
+    - name: Install musl-based ARM 32-bit toolchain
       run: |
-        sudo apt-get update
-        sudo apt-get install -y musl-tools
-        # Install musl-based AArch64 cross-compiler
-        wget https://pan.tenire.com/down.php/a6bb806af217a91cf575e15163e8b12b.tgz
-        tar -xzf a6bb806af217a91cf575e15163e8b12b.tgz
-        sudo mv aarch64-linux-musl-cross /opt/aarch64-linux-musl-cross
-        echo "/opt/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
+        # 下载 arm-linux-musleabihf (32-bit) 交叉编译工具链
+        # 使用 musl.cc 的预编译工具链，它非常适合生成静态二进制文件
+        wget https://musl.cc/arm-linux-musleabihf-cross.tgz
+        tar -xzf arm-linux-musleabihf-cross.tgz
+        
+        # 将解压后的 bin 目录添加到系统路径
+        # 注意：这里使用 $PWD 确保路径绝对正确
+        echo "$PWD/arm-linux-musleabihf-cross/bin" >> $GITHUB_PATH
 
     - name: Clone microsocks
       run: |
         git clone https://github.com/funnychip796/microsocks.git
         cd microsocks
 
-    - name: Build static binary for aarch64 with musl
+    - name: Build static binary for ARM 32-bit with musl
       run: |
         cd microsocks
-        make CC=aarch64-linux-musl-gcc LDFLAGS="-static -s" CFLAGS="-O2"
-        file microsocks  # Verify binary format
+        # 使用 arm-linux-musleabihf-gcc 编译器
+        # -static: 静态链接
+        # -s: 去除符号表(strip)，减小体积
+        make CC=arm-linux-musleabihf-gcc LDFLAGS="-static -s" CFLAGS="-O2"
+        
+        # 验证文件格式 (应显示: ELF 32-bit LSB executable, ARM, EABI5 version 1 ..., statically linked)
+        file microsocks
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: microsocks-aarch64
+        name: microsocks-arm-32bit
         path: microsocks/microsocks
