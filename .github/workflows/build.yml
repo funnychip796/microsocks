@@ -14,31 +14,32 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install musl-based ARM 32-bit toolchain
+    - name: Install Bootlin ARM 32-bit musl toolchain
       run: |
-        # 下载 arm-linux-musleabihf (32-bit) 交叉编译工具链
-        # 使用 musl.cc 的预编译工具链，它非常适合生成静态二进制文件
-        wget https://musl.cc/arm-linux-musleabihf-cross.tgz
-        tar -xzf arm-linux-musleabihf-cross.tgz
+        # 使用 Bootlin 的工具链，速度极快且稳定 (ARMv7 32-bit + Musl)
+        # 下载 tar.bz2 压缩包
+        wget https://toolchains.bootlin.com/downloads/releases/toolchains/armv7-eabihf/tarballs/armv7-eabihf--musl--stable-2021.11-1.tar.bz2
         
-        # 将解压后的 bin 目录添加到系统路径
-        # 注意：这里使用 $PWD 确保路径绝对正确
-        echo "$PWD/arm-linux-musleabihf-cross/bin" >> $GITHUB_PATH
+        # 解压 (-xjf 用于 .tar.bz2)
+        tar -xjf armv7-eabihf--musl--stable-2021.11-1.tar.bz2
+        
+        # 将 bin 目录添加到系统路径
+        # Bootlin 解压后的目录名通常与压缩包名一致
+        echo "$PWD/armv7-eabihf--musl--stable-2021.11-1/bin" >> $GITHUB_PATH
 
     - name: Clone microsocks
       run: |
         git clone https://github.com/funnychip796/microsocks.git
         cd microsocks
 
-    - name: Build static binary for ARM 32-bit with musl
+    - name: Build static binary for ARM 32-bit
       run: |
         cd microsocks
-        # 使用 arm-linux-musleabihf-gcc 编译器
-        # -static: 静态链接
-        # -s: 去除符号表(strip)，减小体积
-        make CC=arm-linux-musleabihf-gcc LDFLAGS="-static -s" CFLAGS="-O2"
+        # Bootlin 工具链的编译器命令前缀通常是 arm-linux-
+        # 这也是 32-bit musl 编译器
+        make CC=arm-linux-gcc LDFLAGS="-static -s" CFLAGS="-O2"
         
-        # 验证文件格式 (应显示: ELF 32-bit LSB executable, ARM, EABI5 version 1 ..., statically linked)
+        # 验证文件格式 (应显示: ELF 32-bit LSB executable, ARM, ..., statically linked)
         file microsocks
 
     - name: Upload artifact
