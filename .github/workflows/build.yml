@@ -31,10 +31,12 @@ jobs:
 
     - name: Build static binary for MIPSEL
       run: |
+        # (可选) 打印出 bin 目录下的文件，方便日后排错
+        ls -l $GITHUB_WORKSPACE/mips32el--musl--stable-2024.02-1/bin/
+        
         cd microsocks
-        # Bootlin 工具链的编译器名称为 mips-linux-gcc
-        # 使用 -static 进行全静态编译，-s 用于压缩体积
-        make CC=mips-linux-gcc LDFLAGS="-static -s" CFLAGS="-O2"
+        # 将 mips-linux-gcc 改为 mipsel-linux-gcc
+        make CC=mipsel-linux-gcc LDFLAGS="-static -s" CFLAGS="-O2"
         
         # 验证编译出的文件架构是否正确
         file microsocks
