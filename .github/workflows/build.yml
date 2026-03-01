@@ -1,0 +1,47 @@
+name: Build microsocks for MIPSEL 32-bit (RM2100)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install MIPSEL musl toolchain
+      run: |
+        # 使用 musl.cc 的 mipsel 软浮点 (Soft-Float) 工具链，完美契合 RM2100 (MT7621)
+        # 下载 tgz 压缩包
+        wget https://musl.cc/mipsel-linux-muslsf-cross.tgz
+        
+        # 解压 (-xzf 用于 .tgz / .tar.gz)
+        tar -xzf mipsel-linux-muslsf-cross.tgz
+        
+        # 将 bin 目录添加到系统路径，供后续 make 调用
+        echo "$PWD/mipsel-linux-muslsf-cross/bin" >> $GITHUB_PATH
+
+    - name: Clone microsocks
+      run: |
+        git clone https://github.com/funnychip796/microsocks.git
+
+    - name: Build static binary for MIPSEL
+      run: |
+        cd microsocks
+        # 使用对应的编译器，加入 -static 实现全静态链接，脱离 uClibc 依赖
+        # 加入 -s (strip) 剥离调试信息，将体积压缩到最小 (通常在 100KB 左右)
+        make CC=mipsel-linux-muslsf-gcc LDFLAGS="-static -s" CFLAGS="-O2"
+        
+        # 验证文件格式 (应显示: ELF 32-bit LSB executable, MIPS, ..., statically linked)
+        file microsocks
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: microsocks-mipsel-rm2100
+        path: microsocks/microsocks
