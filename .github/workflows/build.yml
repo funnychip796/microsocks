@@ -14,17 +14,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install MIPSEL musl toolchain
+    - name: Install Bootlin MIPSEL musl toolchain
       run: |
-        # 使用 musl.cc 的 mipsel 软浮点 (Soft-Float) 工具链，完美契合 RM2100 (MT7621)
-        # 下载 tgz 压缩包
-        wget https://musl.cc/mipsel-linux-muslsf-cross.tgz
+        # 下载 Bootlin 的 mips32el musl 稳定版工具链
+        wget https://toolchains.bootlin.com/downloads/releases/toolchains/mips32el/tarballs/mips32el--musl--stable-2024.02-1.tar.bz2
         
-        # 解压 (-xzf 用于 .tgz / .tar.gz)
-        tar -xzf mipsel-linux-muslsf-cross.tgz
+        # 解压
+        tar -xjf mips32el--musl--stable-2024.02-1.tar.bz2
         
-        # 将 bin 目录添加到系统路径，供后续 make 调用
-        echo "$PWD/mipsel-linux-muslsf-cross/bin" >> $GITHUB_PATH
+        # 将 bin 目录添加到系统环境变量中
+        echo "$PWD/mips32el--musl--stable-2024.02-1/bin" >> $GITHUB_PATH
 
     - name: Clone microsocks
       run: |
@@ -33,11 +32,11 @@ jobs:
     - name: Build static binary for MIPSEL
       run: |
         cd microsocks
-        # 使用对应的编译器，加入 -static 实现全静态链接，脱离 uClibc 依赖
-        # 加入 -s (strip) 剥离调试信息，将体积压缩到最小 (通常在 100KB 左右)
-        make CC=mipsel-linux-muslsf-gcc LDFLAGS="-static -s" CFLAGS="-O2"
+        # Bootlin 工具链的编译器名称为 mips-linux-gcc
+        # 使用 -static 进行全静态编译，-s 用于压缩体积
+        make CC=mips-linux-gcc LDFLAGS="-static -s" CFLAGS="-O2"
         
-        # 验证文件格式 (应显示: ELF 32-bit LSB executable, MIPS, ..., statically linked)
+        # 验证编译出的文件架构是否正确
         file microsocks
 
     - name: Upload artifact
